@@ -1,0 +1,7 @@
+{
+  "client": {
+    "name": "GolangSensuClient",
+    "address": "123.123.123.123",
+    "subscriptions": [ "test" ]
+  }
+}
