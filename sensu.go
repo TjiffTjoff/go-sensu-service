@@ -6,10 +6,18 @@ import (
 	"path/filepath"
 )
 
-func main() {
+func sensu() {
 	// Setting up working directory to executable's directory
 	// Configuration files should be located under the same directory
 	workingDir := filepath.Dir(os.Args[0])
+
+  // Creating or appending to logfile under working directory
+  logFile, err := os.OpenFile(workingDir+"/go-sensu.log", os.O_APPEND|os.O_CREATE, 0755)
+  if err != nil {
+    srvLog.Info("Could not open logfile, exiting")
+    stopWork()
+  }
+  log.SetOutput(logFile)
 
 	clientFile := workingDir + "/client.json"
 	rabbitmqFile := workingDir + "/rabbitmq.json"
@@ -61,10 +69,12 @@ func main() {
 	go ListenAndSend("results", resultsGoChannel, resultsAmqpChannel)
 
 	// Start go routine for creating keepalives
+  log.Println("Starting to send keepalives")
 	go KeepAlive(clientConf, keepAlivesGoChannel)
 
 	// Start go routine for every check in checks configuration
 	for checkName, checkConfig := range checksConf {
+    log.Printf("Initiating %s\n", checkName)
 		go runCheck(clientConf.Name, checkName, checkConfig, resultsGoChannel)
 	}
 
